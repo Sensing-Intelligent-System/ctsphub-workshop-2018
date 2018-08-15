@@ -38,7 +38,7 @@ class image_topic_reciever:
     self.image_pub = rospy.Publisher("/desired_rgb",sensor_msgs.msg.Image, queue_size=5)
 
   def gotimage(self, RGB, Depth):
-    assert RGB.header.stamp == Depth.header.stamp
+    #assert RGB.header.stamp == Depth.header.stamp
 
     try:
       cv_RGB = self.bridge.imgmsg_to_cv2(RGB, "bgr8")
