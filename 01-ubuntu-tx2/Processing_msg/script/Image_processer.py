@@ -29,7 +29,6 @@ import Image_module as IM
 class image_topic_reciever:
 
   def __init__(self):
-    #self.image_pub = rospy.Publisher("image_topic_2",Image)
     print "init class"
     self.bridge = CvBridge()
     self.image_sub = Subscriber("/camera/rgb/image_rect_color", sensor_msgs.msg.Image)
