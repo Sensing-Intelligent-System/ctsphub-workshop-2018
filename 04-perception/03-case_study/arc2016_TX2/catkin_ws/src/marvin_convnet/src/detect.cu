@@ -24,10 +24,10 @@
 
 
 
-std::string shelf_net_arch_filename = "/home/nvidia/apc-vision-toolbox/ros-packages/catkin_ws/src/marvin_convnet/models/competition/net.json";
-std::string tote_net_arch_filename = "/home/nvidia/apc-vision-toolbox/ros-packages/catkin_ws/src/marvin_convnet/models/competition/net.json";
-std::string shelf_net_weights_filename = "/home/nvidia/apc-vision-toolbox/ros-packages/catkin_ws/src/marvin_convnet/models/competition/weights_shelf.marvin";
-std::string tote_net_weights_filename = "/home/nvidia/apc-vision-toolbox/ros-packages/catkin_ws/src/marvin_convnet/models/competition/weights_tote.marvin";
+std::string shelf_net_arch_filename = "/home/nvidia/ctsphub-workshop-2018/04-perception/03-case_study/arc2016_TX2/catkin_ws/src/marvin_convnet/models/competition/net.json";
+std::string tote_net_arch_filename = "/home/nvidia/ctsphub-workshop-2018/04-perception/03-case_study/arc2016_TX2/catkin_ws/src/marvin_convnet/models/competition/net.json";
+std::string shelf_net_weights_filename = "/home/nvidia/ctsphub-workshop-2018/04-perception/03-case_study/arc2016_TX2/catkin_ws/src/marvin_convnet/models/competition/weights_shelf.marvin";
+std::string tote_net_weights_filename = "/home/nvidia/ctsphub-workshop-2018/04-perception/03-case_study/arc2016_TX2/catkin_ws/src/marvin_convnet/models/competition/weights_tote.marvin";
 
 // Service modes and names
 //std::string service_name;
