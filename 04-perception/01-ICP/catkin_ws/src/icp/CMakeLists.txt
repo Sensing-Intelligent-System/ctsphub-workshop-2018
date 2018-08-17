@@ -146,7 +146,8 @@ ${OpenCV_LIBRARIES}
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/icp_node.cpp)
 
-add_executable (icp src/surface_normal.cpp)
+add_executable (surface_normal src/surface_normal.cpp)
+add_executable (segmentation src/segmentation.cpp)
 
 
 ## Rename C++ executable without prefix
@@ -164,7 +165,8 @@ add_executable (icp src/surface_normal.cpp)
 #   ${catkin_LIBRARIES}
 # )
 
-target_link_libraries(icp ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+target_link_libraries(surface_normal ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+target_link_libraries(segmentation ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 #############
 ## Install ##
 #############
