@@ -148,7 +148,7 @@ ${OpenCV_LIBRARIES}
 
 add_executable (surface_normal src/surface_normal.cpp)
 add_executable (segmentation src/segmentation.cpp)
-
+add_executable (icp src/icp.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -167,6 +167,7 @@ add_executable (segmentation src/segmentation.cpp)
 
 target_link_libraries(surface_normal ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 target_link_libraries(segmentation ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+target_link_libraries(icp ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 #############
 ## Install ##
 #############
