@@ -5,6 +5,11 @@
 #include <image_transport/image_transport.h>
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/Image.h>
+#include <vector>
+#include <Eigen/Core>
+#include <visualization_msgs/Marker.h>
+#include <tf/transform_listener.h>
+#include <geometry_msgs/PoseStamped.h>
 
 // cv bridge and opencv
 #include <cv_bridge/cv_bridge.h>
@@ -20,6 +25,9 @@
 #include <pcl/io/ply_io.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/registration/icp.h>
+#include <pcl/common/transforms.h>
+#include <pcl/common/common.h>
+
 
 // sync
 #include <message_filters/subscriber.h>
@@ -36,6 +44,9 @@ static const std::string OPENCV_WINDOW = "Image window";
 
 PointCloud::Ptr model_cloud (new PointCloud);
 pcl::PLYReader Reader;
+
+//pnode_ = ros::NodeHandlePtr(new ros::NodeHandle("~"));
+
 
 int RGB_process(int r, int g, int b)
 {
@@ -78,8 +89,165 @@ int RGB_process(int r, int g, int b)
 }
 
 
+void object_pose_vis(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,  pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud_norm ,Eigen::Matrix4f model2obj_tf, ros::NodeHandlePtr node_, ros::NodeHandlePtr pose_node_)
+{
+
+  Eigen::Vector4f pcaCentroid;
+  pcl::PointXYZRGB  minPt; 
+  pcl::PointXYZRGB  maxPt;
+
+  pcl::compute3DCentroid(*cloud, pcaCentroid);
+  pcl::getMinMax3D (*cloud, minPt, maxPt);
+  Eigen::Matrix3f covariance;
+  
+  
+  pcl::computeCovarianceMatrixNormalized(*cloud_norm, pcaCentroid, covariance);
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> eigen_solver(covariance, Eigen::ComputeEigenvectors);
+  Eigen::Matrix3f eigenVectorsPCA = eigen_solver.eigenvectors();
+  Eigen::Vector3f eigenValuesPCA = eigen_solver.eigenvalues();
+  Eigen::Matrix4f transform(Eigen::Matrix4f::Identity());
+  transform.block<3, 3>(0, 0) = eigenVectorsPCA.transpose();
+  transform.block<3, 1>(0, 3) = -1.0f * (transform.block<3,3>(0,0)) * (pcaCentroid.head<3>());// 
+ 
+  pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr transformedCloud(new pcl::PointCloud<pcl::PointXYZRGBNormal>);
+  pcl::transformPointCloud(*cloud_norm, *transformedCloud, transform);
+ 
+  std::cout << eigenValuesPCA << std::endl;
+  std::cout << eigenVectorsPCA << std::endl;
+  
+  Eigen::Affine3f tra_aff(transform);
+  Eigen::Vector3f pz = eigenVectorsPCA.col(0);
+  Eigen::Vector3f py = eigenVectorsPCA.col(1);
+  Eigen::Vector3f px = eigenVectorsPCA.col(2);
+  pcl::transformVector(pz, pz, tra_aff);
+  pcl::transformVector(py, py, tra_aff);
+  pcl::transformVector(px, px, tra_aff);
+
+
+
+  pcl::PointXYZRGB pcaZ;
+  pcaZ.x = 1000 * pz(0);
+  pcaZ.y = 1000 * pz(1);
+  pcaZ.z = 1000 * pz(2);
+  pcl::PointXYZRGB pcaY;
+  pcaY.x = 1000 * py(0);
+  pcaY.y = 1000 * py(1);
+  pcaY.z = 1000 * py(2);
+  pcl::PointXYZRGB pcaX;
+  pcaX.x = 1000 * px(0);
+  pcaX.y = 1000 * px(1);
+  pcaX.z = 1000 * px(2);
+
+  tf::Matrix3x3 tf3d;
+  tf3d.setValue((pcaX.x), (pcaX.y), (pcaX.z), 
+        (pcaY.x), (pcaY.y), (pcaY.z), 
+        (pcaZ.x), (pcaZ.y), (pcaZ.z));
+  tf::Quaternion tfqt;
+  tf3d.getRotation(tfqt);
+
+
+  float x = pcaCentroid(0);
+  float y = pcaCentroid(1);
+  float z = pcaCentroid(2);
+
+
+
+  tf::Matrix3x3 pose_tf3d;
+  pose_tf3d.setValue((model2obj_tf(0,0)), (model2obj_tf(0,1)), (model2obj_tf(0,2)), 
+        (model2obj_tf(1,0)), (model2obj_tf(1,1)), (model2obj_tf(1,2)), 
+        (model2obj_tf(2,0)), (model2obj_tf(2,1)), (model2obj_tf(2,2)));
+   tf::Quaternion pose_tfqt;
+   pose_tf3d.getRotation(pose_tfqt);
+
+  visualization_msgs::Marker marker;
+  marker.header.frame_id = "camera_rgb_optical_frame";
+  marker.header.stamp = ros::Time();
+  marker.ns = "my_namespace";
+  marker.id = 0;
+  marker.type = visualization_msgs::Marker::CUBE ;
+  marker.action = visualization_msgs::Marker::ADD;
+  marker.pose.position.x = pcaCentroid(0);;
+  marker.pose.position.y = pcaCentroid(1);
+  marker.pose.position.z = pcaCentroid(2);
+  marker.pose.orientation.x = tfqt[0];
+  marker.pose.orientation.y = tfqt[1];
+  marker.pose.orientation.z = tfqt[2];
+  marker.pose.orientation.w = tfqt[3];
+  marker.scale.x = maxPt.x - minPt.x;
+  marker.scale.y = maxPt.y - minPt.y;
+  marker.scale.z = maxPt.z - minPt.z; 
+  marker.color.a = 0.5;
+  marker.color.r = 0.0;
+  marker.color.g = 1.0;
+  marker.color.b = 0.0;
+
+
+  //only if using a MESH_RESOURCE marker type:
+  //marker.mesh_resource = "package://pr2_description/meshes/base_v0/base.dae";
+  ros::Publisher vis_pub = node_ -> advertise<visualization_msgs::Marker>( "obj_marker", 1 );
+  vis_pub.publish( marker );
+  
+
+  geometry_msgs::PoseStamped pose_msg;
+
+  pose_msg.header.frame_id = "camera_rgb_optical_frame";
+  pose_msg.pose.position.x = x;
+  pose_msg.pose.position.y = y;
+  pose_msg.pose.position.z = z;
+  pose_msg.pose.orientation.x = pose_tfqt[0];
+  pose_msg.pose.orientation.y = pose_tfqt[1];
+  pose_msg.pose.orientation.z = pose_tfqt[2];
+  pose_msg.pose.orientation.w = pose_tfqt[3];
+
+  ros::Publisher pose_pub = pose_node_ -> advertise<geometry_msgs::PoseStamped>("obj_pose", 1);
+  pose_pub.publish(pose_msg);
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+void addNormal(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud,
+         pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud_with_normals
+)
+{
+  pcl::PointCloud<pcl::Normal>::Ptr normals ( new pcl::PointCloud<pcl::Normal> );
+
+  pcl::search::KdTree<pcl::PointXYZRGB>::Ptr searchTree (new pcl::search::KdTree<pcl::PointXYZRGB>);
+  searchTree->setInputCloud ( cloud );
+
+  pcl::NormalEstimation<pcl::PointXYZRGB, pcl::Normal> normalEstimator;
+  normalEstimator.setInputCloud ( cloud );
+  normalEstimator.setSearchMethod ( searchTree );
+  //normalEstimator.setKSearch ( 50 );
+  normalEstimator.setRadiusSearch (0.01);
+  normalEstimator.compute ( *normals );
+  
+  pcl::concatenateFields( *cloud, *normals, *cloud_with_normals );
+}
+
+
+
+
+
 void estimate_obj_pose(PointCloud::Ptr& model_cloud, PointCloud::Ptr& obj_cloud)
 {
+  ros::NodeHandle nh_pub;
+  ros::Publisher pub = nh_pub.advertise<PointCloud> ("/Transformed_pc", 1);
+
+  ros::NodeHandle marker_handle;
+  ros::NodeHandle pose_handle;
+  ros::Publisher vis_pub = marker_handle.advertise<visualization_msgs::Marker>( "obj_marker", 1 );
+  ros::Publisher pose_pub = pose_handle.advertise<geometry_msgs::PoseStamped>("obj_pose", 1);
 
   std::cerr << *model_cloud << std::endl;
   std::cerr << *obj_cloud << std::endl;
@@ -103,15 +271,64 @@ void estimate_obj_pose(PointCloud::Ptr& model_cloud, PointCloud::Ptr& obj_cloud)
   std::cerr << "obj sample: " <<*obj_sample << std::endl;
 
 
-
+  /* //icp point to point
   pcl::IterativeClosestPoint<pcl::PointXYZRGB, pcl::PointXYZRGB> icp;
-  icp.setInputSource(model_sample);
-  icp.setInputTarget(obj_sample);
+  icp.setInputSource(model_sample); //model_sample
+  icp.setInputTarget(obj_sample); //obj_sample
   icp.setMaximumIterations ( 100 );
+  icp.setTransformationEpsilon (1e-10);
+  icp.setEuclideanFitnessEpsilon (1e-5);
+  icp.setMaxCorrespondenceDistance (1);
   pcl::PointCloud<pcl::PointXYZRGB> Final;
   icp.align(Final);
   std::cout << "has converged:" << icp.hasConverged() << " score: " << icp.getFitnessScore() << std::endl;
   std::cout << icp.getFinalTransformation() << std::endl;
+  */
+
+  // prepare could with normals
+  pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud_source_normals ( new pcl::PointCloud<pcl::PointXYZRGBNormal> () );
+  pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud_target_normals ( new pcl::PointCloud<pcl::PointXYZRGBNormal> () );
+  pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr final_ptr ( new pcl::PointCloud<pcl::PointXYZRGBNormal> () );
+  //pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud_source_trans_normals ( new pcl::PointCloud<pcl::PointXYZRGBNormal> () );
+  pcl::PointCloud<pcl::PointXYZRGBNormal> Final;
+  *final_ptr = Final;
+
+  addNormal( model_sample, cloud_source_normals );
+  addNormal( obj_sample, cloud_target_normals );
+  //addNormal( cloud_source_trans, cloud_source_trans_normals );
+
+
+  // icp point to plane
+  pcl::IterativeClosestPointWithNormals<pcl::PointXYZRGBNormal, pcl::PointXYZRGBNormal>::Ptr icp ( new pcl::IterativeClosestPointWithNormals<pcl::PointXYZRGBNormal, pcl::PointXYZRGBNormal> () );
+  icp->setMaximumIterations ( 100 );
+  icp->setInputSource ( cloud_source_normals ); // not cloud_source, but cloud_source_trans!
+  icp->setInputTarget ( cloud_target_normals );
+
+
+  // registration
+  icp->align ( Final ); // use cloud with normals for ICP
+  std::cout << "has converged:" << icp->hasConverged() << " score: " << icp->getFitnessScore() << std::endl;
+  std::cout << icp->getFinalTransformation() << std::endl;
+
+  // use cloud without normals for visualizatoin
+  PointCloud::Ptr model_transformed (new PointCloud);
+  pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr model_transformed_norm (new  pcl::PointCloud<pcl::PointXYZRGBNormal>);
+  pcl::transformPointCloud (*model_sample, *model_transformed, icp->getFinalTransformation() );
+  pcl::transformPointCloud (*cloud_source_normals, *model_transformed_norm, icp->getFinalTransformation() );
+
+  PointCloud::Ptr msg_pub (new PointCloud);
+  msg_pub->header.frame_id = "camera_rgb_optical_frame";
+  msg_pub->height = model_transformed->height;
+  msg_pub->width = model_transformed->width;
+  msg_pub->points = model_transformed->points;
+  pcl_conversions::toPCL(ros::Time::now(), msg_pub->header.stamp);
+  pub.publish (msg_pub);
+
+  ros::NodeHandlePtr node_ (new ros::NodeHandle);
+  ros::NodeHandlePtr pose_node_ (new ros::NodeHandle);
+  object_pose_vis(model_transformed, model_transformed_norm, icp->getFinalTransformation(), node_, pose_node_);
+
+
 
 }
 
@@ -127,7 +344,7 @@ void denoise_PointCloud(const PointCloud::ConstPtr& msg)
   // Create the filtering object
   pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;
   sor.setInputCloud (msg);
-  sor.setMeanK (50);
+  sor.setMeanK (50); //50
   sor.setStddevMulThresh (0.5);
   sor.filter (*cloud_filtered);
 
@@ -136,6 +353,8 @@ void denoise_PointCloud(const PointCloud::ConstPtr& msg)
 
   std::cerr << "Cloud after filtering: " << std::endl;
   std::cerr << *cloud_filtered << std::endl;
+  
+  *cloud_filtered = *msg;      // ignore denoise
 
   int count = 0;
   if (cloud_filtered->height != 0 && cloud_filtered->width != 0)
@@ -143,7 +362,7 @@ void denoise_PointCloud(const PointCloud::ConstPtr& msg)
     BOOST_FOREACH (pcl::PointXYZRGB& pt, cloud_filtered->points)
     {
       //uint32_t rgb = *reinterpret_cast<int*>(&pt.rgb);
-      int is_remove = RGB_process(pt.r,pt.g,pt.b);
+      int is_remove = 0;//RGB_process(pt.r,pt.g,pt.b);
       if (is_remove)
       {
           count+=1;
@@ -166,7 +385,6 @@ void denoise_PointCloud(const PointCloud::ConstPtr& msg)
     pcl_conversions::toPCL(ros::Time::now(), msg_pub->header.stamp);
     pub.publish (msg_pub);
 
-
     estimate_obj_pose(model_cloud, cloud_filtered);
   
  }
@@ -185,11 +403,22 @@ void callback(const sensor_msgs::ImageConstPtr& image, const PointCloud::ConstPt
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "segmentation");
+  ros::init(argc, argv, "icp");
 
   ros::NodeHandle nh;
+ 
   
-  Reader.read("dove_new.ply", *model_cloud);
+  Reader.read("/home/peter/ctsp_workshop/ctsphub-workshop-2018/04-perception/01-ICP/catkin_ws/src/icp/src/dove.ply", *model_cloud);
+
+
+  PointCloud::Ptr cloud_filtered (new PointCloud);
+
+  // filtering object model
+  pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;
+  sor.setInputCloud (model_cloud);
+  sor.setMeanK (50); 
+  sor.setStddevMulThresh (0.5);
+  sor.filter (*cloud_filtered);
 
   message_filters::Subscriber<sensor_msgs::Image> image_sub(nh, "/camera/rgb/image_raw", 5);
   message_filters::Subscriber<PointCloud> pc_sub(nh, "/camera/depth_registered/points", 5);
