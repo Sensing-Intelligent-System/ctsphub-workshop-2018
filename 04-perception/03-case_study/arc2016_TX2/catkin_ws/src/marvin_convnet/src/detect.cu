@@ -31,7 +31,7 @@ std::string tote_net_weights_filename = "/home/nvidia/ctsphub-workshop-2018/04-p
 
 // Service modes and names
 //std::string service_name;
-std::string rgb_topic_name = "/camera/color/image_raw";
+std::string rgb_topic_name = "/camera/rgb/image_raw";
 
 // Directory to read/write all RGB-D files and response maps
 //std::string read_directory;
