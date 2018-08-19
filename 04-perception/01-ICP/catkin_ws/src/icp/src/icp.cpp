@@ -442,7 +442,7 @@ int main(int argc, char** argv)
   ros::NodeHandle nh;
  
   
-  Reader.read("/home/peter/ctsp_workshop/ctsphub-workshop-2018/04-perception/01-ICP/catkin_ws/src/icp/src/dove.ply", *model_cloud);
+  Reader.read("/home/nvidia/ctsphub-workshop-2018/04-perception/01-ICP/catkin_ws/src/icp/src/dove.ply", *model_cloud);
 
 
   PointCloud::Ptr cloud_filtered (new PointCloud);
