@@ -104,11 +104,16 @@ class pointcloud_processing
   void denoise_PointCloud(const PointCloud::ConstPtr& msg)
   {
 
+  PointCloud::Ptr cloud_renan (new PointCloud);
+  *cloud_renan = *msg;
+  std::vector<int> indices;
+  pcl::removeNaNFromPointCloud(*cloud_renan, *cloud_renan, indices);
+
   PointCloud::Ptr cloud_filtered (new PointCloud);
 
   // Create the filtering object
   pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;
-  sor.setInputCloud (msg);
+  sor.setInputCloud (cloud_renan);
   sor.setMeanK (50);
   sor.setStddevMulThresh (0.5);
   sor.filter (*cloud_filtered);

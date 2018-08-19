@@ -15,6 +15,6 @@ WORKDIR /home/nvidia/ctsphub-workshop-2018/04-perception/01-ICP/catkin_ws
 RUN /bin/bash -c "source /opt/ros/kinetic/setup.bash && catkin_make"
 
 # setup env
-CMD [ "sh", "-c", "/bin/bash && source /home/nvidia/ctsp_workshop/ctsphub-workshop-2018/04-perception/01-ICP/catkin_ws/devel/setup.sh" ]
+CMD [ "sh", "-c", "/bin/bash && source /home/nvidia/ctsphub-workshop-2018/04-perception/01-ICP/catkin_ws/devel/setup.sh" ]
 
 
