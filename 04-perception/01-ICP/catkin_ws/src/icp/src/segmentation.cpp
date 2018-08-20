@@ -30,6 +30,7 @@ typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, Poin
 
 static const std::string OPENCV_WINDOW = "Image window";
 
+ros::NodeHandlePtr node_;
 
 int RGB_process(int r, int g, int b)
 {
@@ -130,7 +131,7 @@ void callback(const sensor_msgs::ImageConstPtr& image, const PointCloud::ConstPt
   ros::Publisher pub = nh_pub.advertise<PointCloud> ("/Segmented_PointCloud", 1);
   ros::NodeHandlePtr node_ (new ros::NodeHandle);
   *node_ = nh_pub;
-  sleep(2);
+  sleep(1);
   //Denosie & Remove points from PointCloud
   denoise_PointCloud(pc, node_);
 

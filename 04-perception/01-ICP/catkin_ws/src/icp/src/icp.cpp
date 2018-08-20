@@ -297,7 +297,7 @@ void estimate_obj_pose(PointCloud::Ptr& model_cloud, PointCloud::Ptr& obj_cloud)
   pcl::IterativeClosestPoint<pcl::PointXYZRGBNormal, pcl::PointXYZRGBNormal> icp;
   icp.setInputSource(cloud_source_normals); //model_sample
   icp.setInputTarget(cloud_target_normals); //obj_sample
-  icp.setMaximumIterations ( 250 );
+  icp.setMaximumIterations ( 150 );
   icp.setTransformationEpsilon (1e-8);
   icp.setEuclideanFitnessEpsilon (1e-5);
   icp.setMaxCorrespondenceDistance (0.5);
@@ -430,6 +430,7 @@ void callback(const sensor_msgs::ImageConstPtr& image, const PointCloud::ConstPt
 {
 
   //Denosie & Remove points from PointCloud
+  sleep(1);
   denoise_PointCloud(pc);
 
 }
@@ -441,9 +442,9 @@ int main(int argc, char** argv)
 
   ros::NodeHandle nh;
  
-  
+  //Reader.read("/home/peter/ctsp_workshop/ctsphub-workshop-2018/04-perception/01-ICP/catkin_ws/src/icp/src/dove.ply", *model_cloud);
   Reader.read("/home/nvidia/ctsphub-workshop-2018/04-perception/01-ICP/catkin_ws/src/icp/src/dove.ply", *model_cloud);
-
+  model_cloud ->header.frame_id = "/camera_color_optical_frame";
 
   PointCloud::Ptr cloud_filtered (new PointCloud);
 
