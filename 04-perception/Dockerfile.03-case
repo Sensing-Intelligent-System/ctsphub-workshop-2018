@@ -16,7 +16,7 @@ RUN /bin/bash -c "source /opt/ros/kinetic/setup.bash && catkin_make"
 
 WORKDIR /home/nvidia/ctsphub-workshop-2018/04-perception/03-case_study/arc2016_TX2/catkin_wsmarvin_convnet/models/competition
 
-RUN /bin/bash -c "source /home/nvidia/ctsphub-workshop-2018/04-perception/03-case_study/arc2016_TX2/catkin_wsmarvin_convnet/models/competition/download_weights.sh"
+RUN /bin/bash -c "source /home/nvidia/ctsphub-workshop-2018/04-perception/03-case_study/arc2016_TX2/catkin_ws/src/marvin_convnet/models/competition/download_weights.sh"
 
 WORKDIR /home/nvidia/ctsphub-workshop-2018/04-perception/03-case_study/arc2016_TX2/catkin_ws
 # setup env
