@@ -471,8 +471,8 @@ int main(int argc, char** argv){
 	
     
     //////////////////Define model path/////////////
-    string object_model_path("/home/nvidia/apc-vision-toolbox/ros-packages/catkin_ws/src/pose_estimation/src/models/objects/");
-    string bin_model_path("/home/nvidia/apc-vision-toolbox/ros-packages/catkin_ws/src/pose_estimation/src/models/bins/");
+    string object_model_path("/home/nvidia/ctsphub-workshop-2018/04-perception/03-case_study/arc2016_TX2/catkin_ws/src/icp_pose_estimation/src/model/objects/");
+    string bin_model_path("/home/nvidia/ctsphub-workshop-2018/04-perception/03-case_study/arc2016_TX2/catkin_ws/src/icp_pose_estimation/src/model/bins/");
     //////////////////Load Tote Clouds//////////////
     string tote_path = bin_model_path +"tote1.ply";
     io::loadPLYFile<PointXYZRGB>(tote_path, *toteModel);
