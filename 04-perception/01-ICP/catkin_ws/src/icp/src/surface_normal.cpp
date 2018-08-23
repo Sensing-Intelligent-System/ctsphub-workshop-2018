@@ -154,16 +154,18 @@ class pointcloud_processing
     // Output datasets
     pcl::PointCloud<pcl::Normal>::Ptr cloud_normals (new pcl::PointCloud<pcl::Normal>);
 
-    // Use all neighbors in a sphere of radius 3cm
-    ne.setRadiusSearch (0.05);
+    // Use all neighbors in a sphere of radius 0.2cm
+    ne.setRadiusSearch (0.005);
 
     // Compute the features
     ne.compute (*cloud_normals);
 
-    std::cout << cloud_normals << std::endl;
+    std::cout << "finished calculation of surface_normal" << std::endl;
+    std::cout << *cloud_normals << std::endl;
 
     boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer = normalsVis(cloud_filtered, cloud_normals);
 
+ 
 
 
   }
