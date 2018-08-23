@@ -70,7 +70,7 @@ ROS_INFO("Recieved IMAGE topic.");
 cv::Mat color_frame = cv_bridge::toCvShare(msg, "bgr8")->image;
 color_buffer = color_frame.data;
 
-std::cout << "debug !" << std::endl;
+
 
  // Color: BGR format, mean subtracted
   for (int r = 0; r < frame_height; ++r)
@@ -81,7 +81,7 @@ std::cout << "debug !" << std::endl;
     } 
 
 
-std::cout << "debug !!" << std::endl;
+
 
   // Run forward pass through marvin FCN
   //ROS_INFO("Forward Marvin to get segmentation results.");
@@ -91,13 +91,12 @@ std::cout << "debug !!" << std::endl;
   rProb = tote_net.getResponse("prob");
 
 
-std::cout << "debug !!!" << std::endl;
 
   cudaMemcpy(rDataRGB->dataGPU, color_data_CPU, rDataRGB->numBytes(), cudaMemcpyHostToDevice);
 
   tote_net.forward();
 
-std::cout << "debug !!!!" << std::endl;
+
 
   cudaMemcpy(prob_CPU_StorageT, rProb->dataGPU, rProb->numBytes(), cudaMemcpyDeviceToHost);
   for (int i = 0; i < frame_height * frame_width * (num_apc_objects + 1); ++i)
@@ -137,7 +136,6 @@ std::cout << "debug !!!!" << std::endl;
     std::vector<ComputeT> predMap_object_2(prob_CPU_ComputeT + curr_object_idx * frame_height * frame_width, prob_CPU_ComputeT + (curr_object_idx + 1) * frame_height * frame_width);
 */
 
-std::cout << "debug !!!!!" << std::endl;
 
     cv::Mat result_mat(480, 640, CV_8UC3);
 
