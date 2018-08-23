@@ -413,12 +413,12 @@ void icp_cb(const sensor_msgs::Image::ConstPtr& mask){
   printf("Original dove cloud size: %d\n",dove_cloud->points.size());
   icp_point_cloud_preprocessing(dove_cloud);
   background_extraction(tote_align_cloud,dove_cloud);
-  printf("Downsampled and denoised Viva cloud size: %d\n",dove_cloud->points.size());
+  printf("Downsampled and denoised dove cloud size: %d\n",dove_cloud->points.size());
 	if (dove_cloud->points.size()>cloud_size_thres){
 		pcl::PointCloud<PointXYZRGBNormal>::Ptr cloud_source_trans_normals ( new pcl::PointCloud<PointXYZRGBNormal> );
 		vector<double> dove_pose = point_2_plane_icp( dove_cloud,modelClouds[0],cloud_source_trans_normals);
 		icp_vis(modelClouds[0],cloud_source_trans_normals,dove_pose);
-  	printf("----------Finish %s ICP aligning----------\n","Viva");
+  	printf("----------Finish %s ICP aligning----------\n","dove");
 	}
 
 
