@@ -101,8 +101,8 @@ Icp_pose_estimation::Icp_pose_estimation(){
     denoised_object_publisher = nh.advertise<sensor_msgs::PointCloud2> ("/camera/denoised_object", 1); 
     object_publisher = nh.advertise<sensor_msgs::PointCloud2> ("/camera/object", 1);
     align_object_publisher = nh.advertise<sensor_msgs::PointCloud2> ("/camera/align_object", 1);
-    bounding_box_publisher = nh.advertise<visualization_msgs::Marker>("/camera/bounding_box", 0);
-    product_pose_publisher = nh.advertise<geometry_msgs::PoseStamped>("/camera/product_pose", 0);
+    bounding_box_publisher = nh.advertise<visualization_msgs::Marker>("/camera/bounding_box", 1);
+    product_pose_publisher = nh.advertise<geometry_msgs::PoseStamped>("/camera/product_pose", 1);
     object_mask_sub = nh.subscribe("mask_prediction", 1, &Icp_pose_estimation::icp_cb,this);
     scene_cloud_sub = nh.subscribe("/camera/depth_registered/points", 1, &Icp_pose_estimation::update_points,this);
 }
@@ -114,7 +114,7 @@ void Icp_pose_estimation::load_models(){
     //////////////////Load Tote Clouds//////////////
     string tote_path = bin_model_path +"tote1.ply";
     io::loadPLYFile<PointXYZRGB>(tote_path, *toteModel);
-    toteModel->header.frame_id = "/camera_color_optical_frame";
+    toteModel->header.frame_id = "/camera_rgb_optical_frame";
     pcl::VoxelGrid<PointXYZRGB> so;
     so.setInputCloud (toteModel);
     so.setLeafSize (0.03f, 0.03f, 0.03f);
@@ -351,7 +351,7 @@ void Icp_pose_estimation::icp_vis (PointCloud<PointXYZRGB>::Ptr model_point,  pc
 	align_object_publisher.publish(icp_result_point);
 	//Bounding box marker
 	visualization_msgs::Marker marker;
-  marker.header.frame_id = "/camera_color_optical_frame";
+  marker.header.frame_id = "/camera_rgb_optical_frame";
   marker.header.stamp = ros::Time::now();
   marker.id = 0;
 	// Set the marker type.  Initially this is CUBE, and cycles between that and SPHERE, ARROW, and CYLINDER
@@ -382,7 +382,7 @@ void Icp_pose_estimation::icp_vis (PointCloud<PointXYZRGB>::Ptr model_point,  pc
 
   //Product pose
   geometry_msgs::PoseStamped product_pose_vis;
-  product_pose_vis.header.frame_id = "/camera_color_optical_frame";
+  product_pose_vis.header.frame_id = "/camera_rgb_optical_frame";
   product_pose_vis.header.stamp = marker.header.stamp;
   product_pose_vis.pose = marker.pose;
   product_pose_publisher.publish(product_pose_vis);
