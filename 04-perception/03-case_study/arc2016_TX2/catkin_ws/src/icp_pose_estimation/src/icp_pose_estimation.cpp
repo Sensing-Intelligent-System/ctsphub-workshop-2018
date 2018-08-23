@@ -101,8 +101,8 @@ Icp_pose_estimation::Icp_pose_estimation(){
     denoised_object_publisher = nh.advertise<sensor_msgs::PointCloud2> ("/camera/denoised_object", 1); 
     object_publisher = nh.advertise<sensor_msgs::PointCloud2> ("/camera/object", 1);
     align_object_publisher = nh.advertise<sensor_msgs::PointCloud2> ("/camera/align_object", 1);
-    bounding_box_publisher = nh.advertise<visualization_msgs::Marker>("/camera/bounding_box", 1);
-    product_pose_publisher = nh.advertise<geometry_msgs::PoseStamped>("/camera/product_pose", 1);
+    bounding_box_publisher = nh.advertise<visualization_msgs::Marker>("/camera/bounding_box", 0);
+    product_pose_publisher = nh.advertise<geometry_msgs::PoseStamped>("/camera/product_pose", 0);
     object_mask_sub = nh.subscribe("mask_prediction", 1, &Icp_pose_estimation::icp_cb,this);
     scene_cloud_sub = nh.subscribe("/camera/depth_registered/points", 1, &Icp_pose_estimation::update_points,this);
 }
@@ -117,12 +117,12 @@ void Icp_pose_estimation::load_models(){
     toteModel->header.frame_id = "/camera_color_optical_frame";
     pcl::VoxelGrid<PointXYZRGB> so;
     so.setInputCloud (toteModel);
-    so.setLeafSize (0.01f, 0.01f, 0.01f);
+    so.setLeafSize (0.03f, 0.03f, 0.03f);
     so.filter (*toteModel);
     pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor2;
     sor2.setInputCloud (toteModel);
     sor2.setMeanK (50);
-    sor2.setStddevMulThresh (0.03);
+    sor2.setStddevMulThresh (0.5);
     sor2.filter (*toteModel);
     printf("Model cloud size: %d\n",toteModel->points.size());
     //////////////////Create object list////////////
@@ -250,7 +250,7 @@ void Icp_pose_estimation::icp_point_cloud_preprocessing(PointCloud<PointXYZRGB>:
   //////////////Pointcloud downsampling////////////////////
   pcl::VoxelGrid<PointXYZRGB> sor;
   sor.setInputCloud (object_cloud);
-  sor.setLeafSize (0.005f, 0.005f, 0.005f);
+  sor.setLeafSize (0.002f, 0.002f, 0.002f);
   sor.filter (*object_cloud);  
   copyPointCloud(*object_cloud, *downsampled_cloud);
 
@@ -259,7 +259,7 @@ void Icp_pose_estimation::icp_point_cloud_preprocessing(PointCloud<PointXYZRGB>:
   if (object_cloud->points.size()>100){
     sor2.setInputCloud (object_cloud);
     sor2.setMeanK (50);
-    sor2.setStddevMulThresh (0.01);
+    sor2.setStddevMulThresh (0.5);
     sor2.filter (*object_cloud);
   }
 

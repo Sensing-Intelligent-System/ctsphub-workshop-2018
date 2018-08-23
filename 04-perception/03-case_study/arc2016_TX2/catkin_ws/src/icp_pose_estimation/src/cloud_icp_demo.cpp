@@ -162,7 +162,7 @@ void icp_point_cloud_preprocessing(PointCloud<PointXYZRGB>::Ptr object_cloud){
   //////////////Pointcloud downsampling////////////////////
   pcl::VoxelGrid<PointXYZRGB> sor;
   sor.setInputCloud (object_cloud);
-  sor.setLeafSize (0.005f, 0.005f, 0.005f);
+  sor.setLeafSize (0.002f, 0.002f, 0.002f);
   sor.filter (*object_cloud);  
   copyPointCloud(*object_cloud, *downsampled_cloud);
 
@@ -171,7 +171,7 @@ void icp_point_cloud_preprocessing(PointCloud<PointXYZRGB>::Ptr object_cloud){
   if (object_cloud->points.size()>100){
     sor2.setInputCloud (object_cloud);
     sor2.setMeanK (50);
-    sor2.setStddevMulThresh (0.01);
+    sor2.setStddevMulThresh (0.5);
     sor2.filter (*object_cloud);
   }
 
@@ -479,12 +479,12 @@ int main(int argc, char** argv){
     toteModel->header.frame_id = "/camera_color_optical_frame";
     pcl::VoxelGrid<PointXYZRGB> so;
     so.setInputCloud (toteModel);
-    so.setLeafSize (0.01f, 0.01f, 0.01f);
+    so.setLeafSize (0.003f, 0.003f, 0.003f);
     so.filter (*toteModel);
     pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor2;
     sor2.setInputCloud (toteModel);
     sor2.setMeanK (50);
-    sor2.setStddevMulThresh (0.03);
+    sor2.setStddevMulThresh (0.5);
     sor2.filter (*toteModel);
     printf("Model cloud size: %d\n",toteModel->points.size());
     //////////////////Create object list////////////
