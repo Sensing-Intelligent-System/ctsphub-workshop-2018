@@ -1,0 +1,148 @@
+<?xml version="1.0" ?>
+<sdf version="1.4">
+  <world name="demo">
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+    <population name="coke_can_population">
+      <model name="coke_can_tower">
+        <static>true</static>
+        <include>
+          <uri>model://coke_can</uri>
+        </include>
+      </model>
+      <pose>0.01 0.015 0.30 0 0 0</pose>
+      <box>
+        <size>0.2 0.2 0.61</size>
+      </box>
+      <model_count>3</model_count>
+      <distribution>
+        <type>linear-z</type>
+      </distribution>
+    </population>
+    <include>
+      <uri>model://sun</uri>
+      <pose>0 0 0 0 0 0</pose>
+    </include>
+    <include>
+      <static>false</static>
+      <uri>model://workcell_bin</uri>
+      <name>workcell_bin</name>
+      <pose>0.0 0.6 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://part1_ariac</uri>
+      <name>part1</name>
+      <pose>0.15 0.75 0.7 0 0 0.7854</pose>
+    </include>
+    <include>
+      <uri>model://piston_rod_part</uri>
+      <name>part2</name>
+      <pose>0.15 0.35 0.7 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://part3_ariac</uri>
+      <name>part3</name>
+      <pose>-0.15 0.75 0.7 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://part4_ariac</uri>
+      <name>part4</name>
+      <pose>-0.15 0.35 0.7 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://gear_part</uri>
+      <name>gear_part</name>
+      <pose>0 0.6 0.7 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://Tag0</uri>
+      <name>apriltag_0</name>
+      <static>false</static>
+      <pose>0.25 0.4 0.8 1.5708 0 0</pose>
+    </include>
+    <include>
+      <uri>model://Tag1</uri>
+      <name>apriltag_1</name>
+      <pose>0.5 -0.7 1.11 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://Tag2</uri>
+      <name>apriltag_2</name>
+      <pose>0.25 -0.7 1.11 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://Tag3</uri>
+      <name>apriltag_3</name>
+      <pose>0 -0.7 1.11 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://Tag4</uri>
+      <name>apriltag_4</name>
+      <pose>-0.25 -0.7 1.11 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://Tag5</uri>
+      <name>apriltag_5</name>
+      <pose>-0.5 -0.7 1.11 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://table</uri>
+      <name>table</name>
+      <pose>0 -0.7 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://part1_ariac</uri>
+      <name>part11</name>
+      <pose>0.5 -0.5 1.1 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://piston_rod_part</uri>
+      <name>part21</name>
+      <pose>0.25 -0.5 1.1 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://part3_ariac</uri>
+      <name>part31</name>
+      <pose>0 -0.5 1.1 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://part4_ariac</uri>
+      <name>part41</name>
+      <pose>-0.25 -0.5 1.1 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://gear_part</uri>
+      <name>gear_part1</name>
+      <pose>-0.5 -0.5 1.1 0 0 0</pose>
+    </include>
+    <!--include>
+      <uri>model://cafe_table</uri>
+      <name>cafe_table</name>
+      <pose>0.0 0.7 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://beer</uri>
+      <name>beer</name>
+      <static>true</static>
+      <pose>0 1.0 0.78 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://Tag0</uri>
+      <name>apriltag_0</name>
+      <static>false</static>
+      <pose>0.25 0.4 0.8 1.5708 0 0</pose>
+    </include>
+    <include>
+      <uri>model://Tag1</uri>
+      <name>apriltag_1</name>
+      <pose>-0.3 0.6 0.91 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://bowl</uri>
+      <static>false</static>
+      <name>bowl</name>
+      <pose>-0.3 0.5 0.8 0 0 0</pose>
+    </include-->
+  </world>
+</sdf>

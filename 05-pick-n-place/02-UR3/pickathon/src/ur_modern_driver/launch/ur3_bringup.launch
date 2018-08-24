@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!--
+  Universal robot ur3 launch.  Loads ur3 robot description (see ur_common.launch
+  for more info)
+
+  Usage:
+    ur3_bringup.launch robot_ip:=<value>
+-->
+<launch>
+
+  <!-- robot_ip: IP-address of the robot's socket-messaging server -->
+  <arg name="robot_ip"/>
+  <arg name="limited" default="false"/>
+  <arg name="min_payload"  default="0.0"/>
+  <arg name="max_payload"  default="3.0"/>
+  <arg name="prefix" default="" />
+  <!-- robot model -->
+  <include file="$(find robot_description)/launch/ur3_upload_real.launch">
+    <arg name="limited" value="$(arg limited)"/>
+  </include>
+
+  <!-- ur common -->
+  <include file="$(find ur_modern_driver)/launch/ur_common.launch">
+    <arg name="robot_ip" value="$(arg robot_ip)"/>
+    <arg name="min_payload"  value="$(arg min_payload)"/>
+    <arg name="max_payload"  value="$(arg max_payload)"/>
+    <arg name="prefix" value="$(arg prefix)" />
+  </include>
+
+  <!-- robotiq_85_gripper -->
+  <node name="robotiq_c_model_control" pkg="robotiq_c_model_control" type="CModelRtuNode.py" args="/dev/ttyUSB0" />
+
+  <!-- real sense sr300 -->
+  <include file="$(find realsense_camera)/launch/sr300_nodelet_rgbd.launch" />
+
+  <arg name="ur3_control" default="false"/>
+  <arg name="apriltag_detection" default="false"/>
+  <arg name="moveit_planning" default="false"/>
+
+  <node if="$(arg ur3_control)" name="ur3_control" pkg="tutorial_0905" type="ur3_control_real"/>
+  <include if="$(arg apriltag_detection)" file="$(find apriltags_ros)/launch/ur3_real.launch"/>
+  <include if="$(arg moveit_planning)" file="$(find moveit_config_ur3_with_gripper)/launch/moveit_planning_execution_real.launch" />
+  <node if="$(eval moveit_planning == 'false')" name="rviz" pkg="rviz" type="rviz" />
+
+</launch>
