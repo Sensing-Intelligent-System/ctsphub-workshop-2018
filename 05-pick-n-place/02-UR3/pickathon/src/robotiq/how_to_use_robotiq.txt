@@ -1,0 +1,24 @@
+Robot Output Register
+
+rACT: First action to be made prior to any other actions, will initialize the Adaptive Gripper.
+	0x0: Deactive Gripper
+	0x1: Active Gripper
+rGTO: THe "Go To" action moves the Gripper fingers to the requested position using the configuration defined by the other registers.
+	0x0: Stop
+	0x1: Go to requested position
+rATR: Automatic Release routine action slowly opens the Gripper fingers until all motion axes reach tneir mechanical limits.
+	0x0: Normal
+	0x1: Emergency auto-release
+rARD: Auto-release dirction. 
+	0x0: Closing auto-release
+	0x1: Opening auto-release
+rPR: Set the target position for the Gripper's fingers.
+	!!!0x00: Open position!!!
+	!!!0xFF: Closed!!!
+rSP: Set the Gripper closing or opening spped in realtime.
+	0x00: Minimum speed
+	0xFF: Maximun speed
+rFR: Set the final gripper force for the Gripper.
+	0x00: Minimum force
+	0xFF: Maximum force
+

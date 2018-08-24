@@ -1,0 +1,22 @@
+<launch>
+  <arg name="use_sim" default="false"/>
+  <arg name="model" default="$(find dynamixel_arm)/urdf/my_arm.urdf"/>
+  <arg name="rvizconfig" default="$(find dynamixel_arm)/rviz/display.rviz" />
+  <param name="robot_description" command="$(find xacro)/xacro.py $(arg model)"/>
+  
+  <group if="$(arg use_sim)">
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+      <param name="/use_gui" value="true"/>
+    </node>
+  </group>
+  <group unless="$(arg use_sim)">
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+      <param name="/use_gui" value="false"/>
+      <rosparam param="/source_list">[/motor_states/joint_state]</rosparam>
+    </node>
+    <node name="state_remap_node" pkg="dynamixel_arm" type="state_remap.py"/>
+  </group>
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
+</launch>
+

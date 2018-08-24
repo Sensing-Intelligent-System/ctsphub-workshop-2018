@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="limited" default="false"/>
+  <arg name="paused" default="true"/>
+  <arg name="gui" default="true"/>
+  <arg name="ur3_control" default="false"/>
+  <arg name="apriltag_detection" default="false"/>
+  <arg name="moveit_planning" default="false"/>
+ 
+  <!-- startup simulated world -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find robot_description)/worlds/demo.world"/>
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="gui" value="$(arg gui)"/>
+  </include>
+
+  <!-- send robot urdf to param server -->
+  <include file="$(find robot_description)/launch/ur3_upload.launch">
+    <arg name="limited" value="$(arg limited)"/>
+  </include>
+
+  <include file="$(find robot_description)/launch/controller_utils.launch"/>
+
+  <!-- push robot_description to factory and spawn robot in gazebo -->
+  <!--node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model robot -J shoulder_lift_joint -1.5708 -J wrist_1_joint -1.5708 -unpause" respawn="false" output="screen" /-->
+  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model robot -unpause" respawn="false" output="screen" />
+
+  <rosparam file="$(find robot_description)/controller/arm_controller_ur3.yaml" command="load"/>
+  <node name="arm_controller_spawner" pkg="controller_manager" type="controller_manager" args="spawn arm_controller gripper_controller" respawn="false" output="screen"/>
+
+  
+  <node if="$(arg ur3_control)" name="ur3_control" pkg="tutorial_0905" type="ur3_control"/>
+  <include if="$(arg apriltag_detection)" file="$(find apriltags_ros)/launch/example.launch"/>
+  <include if="$(arg moveit_planning)" file="$(find moveit_config_ur3_with_gripper)/launch/moveit_planning_execution.launch" />
+  <node if="$(eval moveit_planning == 'false')" name="rviz" pkg="rviz" type="rviz" args="-d $(find robot_description)/rviz/urdf.rviz" />
+</launch>
