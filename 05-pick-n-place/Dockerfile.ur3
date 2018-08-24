@@ -1,4 +1,4 @@
-FROM peterx7803/ctsp-04-ur3
+FROM peterx7803/ctsp-00-ros
 
 
 RUN cd ~ \
