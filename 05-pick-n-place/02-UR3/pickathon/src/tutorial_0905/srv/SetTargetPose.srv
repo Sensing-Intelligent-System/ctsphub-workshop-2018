@@ -1,0 +1,5 @@
+geometry_msgs/Pose target_pose
+float32 gripping_force
+float32 planning_time
+---
+string plan_result
