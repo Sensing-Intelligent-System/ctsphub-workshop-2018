@@ -47,7 +47,7 @@ int RGB_process(int r, int g, int b)
 
     // Find white box (Dove)
     int h_max = 180, h_min = 0;
-    int s_max = 30, s_min = 0; 
+    int s_max = 40, s_min = 0; 
     int v_max = 255, v_min = 130;
 
     for(int i = 0; i < 1; i ++)
@@ -74,8 +74,9 @@ int RGB_process(int r, int g, int b)
 
 void denoise_PointCloud(const PointCloud::ConstPtr& msg, ros::NodeHandlePtr node_)
 {
-  //ros::NodeHandle nh_pub;
-  ros::Publisher pub = node_ -> advertise<PointCloud> ("/Segmented_PointCloud", 1);
+  ros::NodeHandle nh_pub;
+  //ros::Publisher pub = node_ -> advertise<PointCloud> ("/Segmented_PointCloud", 1);
+  ros::Publisher pub = nh_pub.advertise<PointCloud> ("/Segmented_PointCloud", 1);
 
   PointCloud::Ptr cloud_filtered (new PointCloud);
 
@@ -131,7 +132,6 @@ void callback(const sensor_msgs::ImageConstPtr& image, const PointCloud::ConstPt
   ros::Publisher pub = nh_pub.advertise<PointCloud> ("/Segmented_PointCloud", 1);
   ros::NodeHandlePtr node_ (new ros::NodeHandle);
   *node_ = nh_pub;
-  sleep(1);
   //Denosie & Remove points from PointCloud
   denoise_PointCloud(pc, node_);
 
