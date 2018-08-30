@@ -47,7 +47,7 @@ PointCloud::Ptr model_cloud (new PointCloud);
 pcl::PLYReader Reader;
 
 //pnode_ = ros::NodeHandlePtr(new ros::NodeHandle("~"));
-
+ros::Publisher pub;
 
 int RGB_process(int r, int g, int b)
 {
@@ -350,8 +350,8 @@ void estimate_obj_pose(PointCloud::Ptr& model_cloud, PointCloud::Ptr& obj_cloud)
 
 void denoise_PointCloud(const PointCloud::ConstPtr& msg)
 {
-  ros::NodeHandle nh_pub;
-  ros::Publisher pub = nh_pub.advertise<PointCloud> ("/Segmented_PointCloud", 1);
+  //ros::NodeHandle nh_pub;
+  //ros::Publisher pub = nh_pub.advertise<PointCloud> ("/Segmented_PointCloud", 1);
 
   PointCloud::Ptr cloud_renan (new PointCloud);
   PointCloud::Ptr cloud_filtered (new PointCloud);
@@ -457,6 +457,7 @@ int main(int argc, char** argv)
 
   message_filters::Subscriber<sensor_msgs::Image> image_sub(nh, "/camera/rgb/image_raw", 5);
   message_filters::Subscriber<PointCloud> pc_sub(nh, "/camera/depth_registered/points", 5);
+  pub = nh.advertise<PointCloud> ("/Segmented_PointCloud", 1);
 
   message_filters::Synchronizer<SyncPolicy> sync(SyncPolicy(5), image_sub, pc_sub);
   sync.registerCallback(boost::bind(&callback, _1, _2));

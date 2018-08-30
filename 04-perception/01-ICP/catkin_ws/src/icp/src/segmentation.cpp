@@ -31,6 +31,7 @@ typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, Poin
 static const std::string OPENCV_WINDOW = "Image window";
 
 ros::NodeHandlePtr node_;
+ros::Publisher pub;
 
 int RGB_process(int r, int g, int b)
 {
@@ -47,7 +48,7 @@ int RGB_process(int r, int g, int b)
 
     // Find white box (Dove)
     int h_max = 180, h_min = 0;
-    int s_max = 30, s_min = 0; 
+    int s_max = 40, s_min = 0; 
     int v_max = 255, v_min = 130;
 
     for(int i = 0; i < 1; i ++)
@@ -74,8 +75,9 @@ int RGB_process(int r, int g, int b)
 
 void denoise_PointCloud(const PointCloud::ConstPtr& msg, ros::NodeHandlePtr node_)
 {
-  //ros::NodeHandle nh_pub;
-  ros::Publisher pub = node_ -> advertise<PointCloud> ("/Segmented_PointCloud", 1);
+  ros::NodeHandle nh_pub;
+  //ros::Publisher pub = node_ -> advertise<PointCloud> ("/Segmented_PointCloud", 1);
+  //ros::Publisher pub = nh_pub.advertise<PointCloud> ("/Segmented_PointCloud", 5);
 
   PointCloud::Ptr cloud_filtered (new PointCloud);
 
@@ -128,10 +130,9 @@ void denoise_PointCloud(const PointCloud::ConstPtr& msg, ros::NodeHandlePtr node
 void callback(const sensor_msgs::ImageConstPtr& image, const PointCloud::ConstPtr& pc)
 {
   ros::NodeHandle nh_pub;
-  ros::Publisher pub = nh_pub.advertise<PointCloud> ("/Segmented_PointCloud", 1);
+  //ros::Publisher pub = nh_pub.advertise<PointCloud> ("/Segmented_PointCloud", 5);
   ros::NodeHandlePtr node_ (new ros::NodeHandle);
   *node_ = nh_pub;
-  sleep(1);
   //Denosie & Remove points from PointCloud
   denoise_PointCloud(pc, node_);
 
@@ -146,8 +147,10 @@ int main(int argc, char** argv)
 
   message_filters::Subscriber<sensor_msgs::Image> image_sub(nh, "/camera/rgb/image_raw", 5);
   message_filters::Subscriber<PointCloud> pc_sub(nh, "/camera/depth_registered/points", 5);
-
+  
   message_filters::Synchronizer<SyncPolicy> sync(SyncPolicy(5), image_sub, pc_sub);
+  pub = nh.advertise<PointCloud> ("/Segmented_PointCloud", 5);
+
   sync.registerCallback(boost::bind(&callback, _1, _2));
 
 

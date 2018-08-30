@@ -153,7 +153,11 @@ color_buffer = color_frame.data;
 		ComputeT max_value_G = 0;
 		ComputeT max_value_B = 0;
 
+    if (max_value <=0.01)
+      max_value = 0;
 
+    if (max_value >0.01)
+      max_value = 1;
 		max_value_R = max_value*dove_color[0];
 		max_value_G = max_value*dove_color[1];
 		max_value_B = max_value*dove_color[2];
