@@ -31,7 +31,10 @@
   <node name="robotiq_c_model_control" pkg="robotiq_c_model_control" type="CModelRtuNode.py" args="/dev/ttyUSB0" />
 
   <!-- real sense sr300 -->
-  <include file="$(find realsense_camera)/launch/sr300_nodelet_rgbd.launch" />
+  <include file="$(find realsense_camera)/launch/sr300_nodelet_rgbd.launch">
+    <arg name="depth_fps" value="10"/>
+    <arg name="color_fps" value="10"/>
+  </include>
 
   <arg name="ur3_control" default="false"/>
   <arg name="apriltag_detection" default="false"/>
@@ -40,6 +43,6 @@
   <node if="$(arg ur3_control)" name="ur3_control" pkg="tutorial_0905" type="ur3_control_real"/>
   <include if="$(arg apriltag_detection)" file="$(find apriltags_ros)/launch/ur3_real.launch"/>
   <include if="$(arg moveit_planning)" file="$(find moveit_config_ur3_with_gripper)/launch/moveit_planning_execution_real.launch" />
-  <node if="$(eval moveit_planning == 'false')" name="rviz" pkg="rviz" type="rviz" />
+  <node unless="$(arg moveit_planning)" name="rviz" pkg="rviz" type="rviz" />
 
 </launch>
