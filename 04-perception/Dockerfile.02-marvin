@@ -19,6 +19,10 @@ WORKDIR /home/nvidia/ctsphub-workshop-2018/04-perception/02-marvin/catkin_ws/src
 
 RUN /bin/bash -c "source /home/nvidia/ctsphub-workshop-2018/04-perception/02-marvin/catkin_ws/src/marvin_convnet/models/competition/download_weights.sh"
 
+
+WORKDIR /home/nvidia
+COPY custom_sr300_fps_10.launch /home/nvidia/custom_sr300_fps_10.launch
+
 WORKDIR /home/nvidia/ctsphub-workshop-2018/04-perception/02-marvin/catkin_ws
 # setup env
 CMD [ "sh", "-c", "/bin/bash && source /home/nvidia/ctsphub-workshop-2018/04-perception/02-marvin/catkin_ws/devel/setup.sh" ]

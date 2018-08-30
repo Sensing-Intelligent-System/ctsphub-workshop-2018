@@ -162,7 +162,7 @@ void icp_point_cloud_preprocessing(PointCloud<PointXYZRGB>::Ptr object_cloud){
   //////////////Pointcloud downsampling////////////////////
   pcl::VoxelGrid<PointXYZRGB> sor;
   sor.setInputCloud (object_cloud);
-  sor.setLeafSize (0.005f, 0.005f, 0.005f);
+  sor.setLeafSize (0.002f, 0.002f, 0.002f);
   sor.filter (*object_cloud);  
   copyPointCloud(*object_cloud, *downsampled_cloud);
 
@@ -171,7 +171,7 @@ void icp_point_cloud_preprocessing(PointCloud<PointXYZRGB>::Ptr object_cloud){
   if (object_cloud->points.size()>100){
     sor2.setInputCloud (object_cloud);
     sor2.setMeanK (50);
-    sor2.setStddevMulThresh (0.01);
+    sor2.setStddevMulThresh (0.5);
     sor2.filter (*object_cloud);
   }
 
@@ -306,7 +306,16 @@ void object_cloud_filtering(PointCloud<PointXYZRGB>::Ptr cloud ,cv_bridge::CvIma
 		printf("Weird\n");
 		return;
 	}
+
+
 	int mask_color[3];
+	if (object == "dove")
+		{
+		mask_color[0] = 255;
+		mask_color[1] = 255;
+		mask_color[2] = 255;
+	}
+	/*
 	if (object == "viva"){
 		mask_color[0] = viva_mask_color[0];
 		mask_color[1] = viva_mask_color[1];
@@ -322,6 +331,7 @@ void object_cloud_filtering(PointCloud<PointXYZRGB>::Ptr cloud ,cv_bridge::CvIma
 		mask_color[1] = crayola_mask_color[1];
 		mask_color[2] = crayola_mask_color[2];
 	}
+	*/
 
 	////////////////Filter object cloud///////////////////
 	int count = 0;
@@ -344,6 +354,14 @@ void object_cloud_filtering(PointCloud<PointXYZRGB>::Ptr cloud ,cv_bridge::CvIma
 			}
 			if (object == "crayola"){
 				if	(mask->image.at<Vec3b>(row,column)[0]!=0| mask->image.at<Vec3b>(row,column)[1]<threshold | mask->image.at<Vec3b>(row,column)[2]!=0){
+					cloud->points[count].x= std::numeric_limits<float>::quiet_NaN();
+					cloud->points[count].y= std::numeric_limits<float>::quiet_NaN();
+					cloud->points[count].z= std::numeric_limits<float>::quiet_NaN();
+				}
+			}
+
+			if (object == "dove"){
+				if	(mask->image.at<Vec3b>(row,column)[0]< threshold | mask->image.at<Vec3b>(row,column)[1]< threshold | mask->image.at<Vec3b>(row,column)[2]< threshold){
 					cloud->points[count].x= std::numeric_limits<float>::quiet_NaN();
 					cloud->points[count].y= std::numeric_limits<float>::quiet_NaN();
 					cloud->points[count].z= std::numeric_limits<float>::quiet_NaN();
@@ -380,10 +398,31 @@ void icp_cb(const sensor_msgs::Image::ConstPtr& mask){
   PointCloud<PointXYZRGB>::Ptr crayola_cloud(new PointCloud<PointXYZRGB>);
   PointCloud<PointXYZRGB>::Ptr kleenex_cloud(new PointCloud<PointXYZRGB>);
   PointCloud<PointXYZRGB>::Ptr viva_cloud(new PointCloud<PointXYZRGB>);
+  PointCloud<PointXYZRGB>::Ptr dove_cloud(new PointCloud<PointXYZRGB>);
+
+  copyPointCloud(*scene_cloud, *dove_cloud);
   copyPointCloud(*scene_cloud, *crayola_cloud);
   copyPointCloud(*scene_cloud, *kleenex_cloud);
   copyPointCloud(*scene_cloud, *viva_cloud);
 
+
+
+
+	// ////////Dove soap box Object alignmant//////////
+  object_cloud_filtering(dove_cloud,cv_ptr,"dove");
+  printf("Original dove cloud size: %d\n",dove_cloud->points.size());
+  icp_point_cloud_preprocessing(dove_cloud);
+  background_extraction(tote_align_cloud,dove_cloud);
+  printf("Downsampled and denoised dove cloud size: %d\n",dove_cloud->points.size());
+	if (dove_cloud->points.size()>cloud_size_thres){
+		pcl::PointCloud<PointXYZRGBNormal>::Ptr cloud_source_trans_normals ( new pcl::PointCloud<PointXYZRGBNormal> );
+		vector<double> dove_pose = point_2_plane_icp( dove_cloud,modelClouds[0],cloud_source_trans_normals);
+		icp_vis(modelClouds[0],cloud_source_trans_normals,dove_pose);
+  	printf("----------Finish %s ICP aligning----------\n","dove");
+	}
+
+
+  /*
 	// ////////Viva Object alignmant//////////
   object_cloud_filtering(viva_cloud,cv_ptr,"viva");
   printf("Original Viva cloud size: %d\n",viva_cloud->points.size());
@@ -422,6 +461,8 @@ void icp_cb(const sensor_msgs::Image::ConstPtr& mask){
 		icp_vis(modelClouds[0],cloud_source_trans_normals,crayola_pose);
   		printf("----------Finish %s ICP aligning----------\n","Crayola");
 	}
+
+	*/
   	return;
 }
 
@@ -430,27 +471,28 @@ int main(int argc, char** argv){
 	
     
     //////////////////Define model path/////////////
-    string object_model_path("/home/nvidia/apc-vision-toolbox/ros-packages/catkin_ws/src/pose_estimation/src/models/objects/");
-    string bin_model_path("/home/nvidia/apc-vision-toolbox/ros-packages/catkin_ws/src/pose_estimation/src/models/bins/");
+    string object_model_path("/home/nvidia/ctsphub-workshop-2018/04-perception/03-case_study/arc2016_TX2/catkin_ws/src/icp_pose_estimation/src/model/objects/");
+    string bin_model_path("/home/nvidia/ctsphub-workshop-2018/04-perception/03-case_study/arc2016_TX2/catkin_ws/src/icp_pose_estimation/src/model/bins/");
     //////////////////Load Tote Clouds//////////////
     string tote_path = bin_model_path +"tote1.ply";
     io::loadPLYFile<PointXYZRGB>(tote_path, *toteModel);
     toteModel->header.frame_id = "/camera_color_optical_frame";
     pcl::VoxelGrid<PointXYZRGB> so;
     so.setInputCloud (toteModel);
-    so.setLeafSize (0.01f, 0.01f, 0.01f);
+    so.setLeafSize (0.003f, 0.003f, 0.003f);
     so.filter (*toteModel);
     pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor2;
     sor2.setInputCloud (toteModel);
     sor2.setMeanK (50);
-    sor2.setStddevMulThresh (0.03);
+    sor2.setStddevMulThresh (0.5);
     sor2.filter (*toteModel);
     printf("Model cloud size: %d\n",toteModel->points.size());
     //////////////////Create object list////////////
-    object_list.push_back("crayola_24_ct");
-    object_list.push_back("kleenex_tissue_box");
-    // object_list.push_back("dove_beauty_bar");    
-    object_list.push_back("kleenex_paper_towels");
+
+    object_list.push_back("dove_beauty_bar"); 
+    //object_list.push_back("crayola_24_ct");
+    //object_list.push_back("kleenex_tissue_box");
+    //object_list.push_back("kleenex_paper_towels");
     // object_list.push_back("folgers_classic_roast_coffee");
 
     /////////////////Create object Pointcloud list//

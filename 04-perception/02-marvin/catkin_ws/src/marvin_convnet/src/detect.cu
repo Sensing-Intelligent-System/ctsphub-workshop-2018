@@ -71,6 +71,7 @@ cv::Mat color_frame = cv_bridge::toCvShare(msg, "bgr8")->image;
 color_buffer = color_frame.data;
 
 
+
  // Color: BGR format, mean subtracted
   for (int r = 0; r < frame_height; ++r)
     for (int c = 0; c < frame_width; ++c) {
@@ -78,6 +79,7 @@ color_buffer = color_frame.data;
       color_data_CPU[1 * frame_height * frame_width + r * frame_width + c] = CPUCompute2StorageT(ComputeT(color_buffer[1 + 3 * (c + frame_width * r)]) - ComputeT(115.9465f)); // G
       color_data_CPU[2 * frame_height * frame_width + r * frame_width + c] = CPUCompute2StorageT(ComputeT(color_buffer[2 + 3 * (c + frame_width * r)]) - ComputeT(122.7717f)); // R
     } 
+
 
 
 
@@ -93,6 +95,8 @@ color_buffer = color_frame.data;
   cudaMemcpy(rDataRGB->dataGPU, color_data_CPU, rDataRGB->numBytes(), cudaMemcpyHostToDevice);
 
   tote_net.forward();
+
+
 
   cudaMemcpy(prob_CPU_StorageT, rProb->dataGPU, rProb->numBytes(), cudaMemcpyDeviceToHost);
   for (int i = 0; i < frame_height * frame_width * (num_apc_objects + 1); ++i)
@@ -119,28 +123,31 @@ color_buffer = color_frame.data;
     int curr_object_idx = std::distance(all_object_names.begin(), find(all_object_names.begin(), all_object_names.end(), curr_object_name));
     std::vector<ComputeT> predMap_object(prob_CPU_ComputeT + curr_object_idx * frame_height * frame_width, prob_CPU_ComputeT + (curr_object_idx + 1) * frame_height * frame_width);
 
+/*
     curr_object_name = selected_object_names[selected_idx+1];
     curr_object_idx = std::distance(all_object_names.begin(), find(all_object_names.begin(), all_object_names.end(), curr_object_name));
     std::cout << curr_object_idx << " , "<< curr_object_name << std::endl;
     std::vector<ComputeT> predMap_object_1(prob_CPU_ComputeT + curr_object_idx * frame_height * frame_width, prob_CPU_ComputeT + (curr_object_idx + 1) * frame_height * frame_width);
-
-    
+*/
+    /*
     curr_object_name = selected_object_names[selected_idx+2];
     curr_object_idx = std::distance(all_object_names.begin(), find(all_object_names.begin(), all_object_names.end(), curr_object_name));
     std::cout << curr_object_idx << " , "<< curr_object_name << std::endl;
     std::vector<ComputeT> predMap_object_2(prob_CPU_ComputeT + curr_object_idx * frame_height * frame_width, prob_CPU_ComputeT + (curr_object_idx + 1) * frame_height * frame_width);
-
+*/
 
 
     cv::Mat result_mat(480, 640, CV_8UC3);
 
     for (size_t y = 0; y < frame_height; y++)
       for (size_t x = 0; x < frame_width; x++) {
-     	ComputeT p_0 = (predMap_object[y * frame_width + x]);
-		ComputeT p_1 = (predMap_object_1[y * frame_width + x]);
-		ComputeT p_2 = (predMap_object_2[y * frame_width + x]);
+     	       
+		ComputeT p_0 = (predMap_object[y * frame_width + x]);
 
-	int max_class = 0;
+		//ComputeT p_1 = (predMap_object_1[y * frame_width + x]);
+		//ComputeT p_2 = (predMap_object_2[y * frame_width + x]);
+
+		int max_class = 0;
 		ComputeT max_value = p_0;
 		ComputeT max_value_R = 0;
 		ComputeT max_value_G = 0;

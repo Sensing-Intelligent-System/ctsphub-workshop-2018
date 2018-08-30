@@ -30,6 +30,7 @@ typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, Poin
 
 static const std::string OPENCV_WINDOW = "Image window";
 
+ros::NodeHandlePtr node_;
 
 int RGB_process(int r, int g, int b)
 {
@@ -71,10 +72,10 @@ int RGB_process(int r, int g, int b)
   return is_remove;
 }
 
-void denoise_PointCloud(const PointCloud::ConstPtr& msg)
+void denoise_PointCloud(const PointCloud::ConstPtr& msg, ros::NodeHandlePtr node_)
 {
-  ros::NodeHandle nh_pub;
-  ros::Publisher pub = nh_pub.advertise<PointCloud> ("/Segmented_PointCloud", 1);
+  //ros::NodeHandle nh_pub;
+  ros::Publisher pub = node_ -> advertise<PointCloud> ("/Segmented_PointCloud", 1);
 
   PointCloud::Ptr cloud_filtered (new PointCloud);
 
@@ -118,7 +119,7 @@ void denoise_PointCloud(const PointCloud::ConstPtr& msg)
     msg_pub->width = cloud_filtered->width;
     msg_pub->points = cloud_filtered->points;
     pcl_conversions::toPCL(ros::Time::now(), msg_pub->header.stamp);
-    pub.publish (msg_pub);
+    pub.publish(msg_pub);
   }
 
 }
@@ -126,9 +127,13 @@ void denoise_PointCloud(const PointCloud::ConstPtr& msg)
 
 void callback(const sensor_msgs::ImageConstPtr& image, const PointCloud::ConstPtr& pc)
 {
-
+  ros::NodeHandle nh_pub;
+  ros::Publisher pub = nh_pub.advertise<PointCloud> ("/Segmented_PointCloud", 1);
+  ros::NodeHandlePtr node_ (new ros::NodeHandle);
+  *node_ = nh_pub;
+  sleep(1);
   //Denosie & Remove points from PointCloud
-  denoise_PointCloud(pc);
+  denoise_PointCloud(pc, node_);
 
 }
 

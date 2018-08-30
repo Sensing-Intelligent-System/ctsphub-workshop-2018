@@ -1,0 +1,36 @@
+FROM peterx7803/ctsp-00-ros
+
+
+RUN cd ~ \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends ros-kinetic-effort-controllers \
+    && apt-get install -y --no-install-recommends ros-kinetic-joint-state-controller \
+    && apt-get install -y --no-install-recommends ros-kinetic-ros-control ros-kinetic-ros-controllers \
+    && apt-get install -y --no-install-recommends ros-kinetic-ur-msgs \
+    && apt-get install -y --no-install-recommends ros-kinetic-ur-kinematics \
+    && apt-get install -y --no-install-recommends ros-kinetic-ur-description \
+    && apt-get install -y --no-install-recommends ros-kinetic-ur3-moveit-config \
+    && apt-get install -y --no-install-recommends ros-kinetic-soem \
+    && apt-get install -y --no-install-recommends ros-kinetic-moveit-visual-tools \
+    && sudo apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+
+COPY /01-Dynamixel /home/nvidia/ctsphub-workshop-2018/05-pick-n-place/01-Dynamixel
+COPY /02-UR3 /home/nvidia/ctsphub-workshop-2018/05-pick-n-place/02-UR3
+
+# catkin_make  Dynamixel
+WORKDIR /home/nvidia/ctsphub-workshop-2018/05-pick-n-place/01-Dynamixel/dynamixel/catkin_ws
+RUN /bin/bash -c "source /opt/ros/kinetic/setup.bash && catkin_make"
+
+
+
+# catkin_make  UR3
+WORKDIR /home/nvidia/ctsphub-workshop-2018/05-pick-n-place/02-UR3/pickathon/catkin_ws
+
+RUN chmod +x src/universal_robot/ur_driver/cfg/URDriver.cfg
+
+RUN /bin/bash -c "source /opt/ros/kinetic/setup.bash && catkin_make"
+
+
+
