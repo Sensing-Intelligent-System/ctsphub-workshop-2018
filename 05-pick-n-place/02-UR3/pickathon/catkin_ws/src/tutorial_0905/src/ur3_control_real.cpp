@@ -1,6 +1,8 @@
 #include <ros/ros.h>
 #include <actionlib/client/simple_action_client.h>
 
+#include <std_srvs/Empty.h>
+
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Quaternion.h>
 #include <sensor_msgs/JointState.h>
@@ -28,6 +30,7 @@ class RobotArm {
   ros::Publisher pub_gripper_cmd;
   ros::Subscriber sub_joint_state_;
   ros::ServiceServer goto_pose_srv_;
+  ros::ServiceServer goto_home_srv_;
   // gripper cmd
   robotiq_c_model_control::CModel_robot_output cmd;  
   
@@ -142,6 +145,7 @@ class RobotArm {
     pub_end_effector_pose_ = nh_.advertise<tutorial_0905::MyPose>("/ur3_control/cartesian_state", 1);
     pub_gripper_cmd = nh_.advertise<robotiq_c_model_control::CModel_robot_output>("/CModelRobotOutput", 1);
     goto_pose_srv_ = nh_.advertiseService("/ur3_control/goto_pose", &RobotArm::GotoPoseService, this);
+    goto_home_srv_ = nh_.advertiseService("/ur3_control/goto_home", &RobotArm::GotoHomeService, this);
     // Initialize the gripper
     initial_gripper();
     trajectory_msgs::JointTrajectory &t = goal_.trajectory;
@@ -183,6 +187,35 @@ class RobotArm {
     res.plan_result = num_sols_ == 0 ? "fail_to_find_solution" : "find_one_feasible_solution";
     return true;
   }
+  bool GotoHomeService(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res) {
+    trajectory_msgs::JointTrajectory &t = goal_.trajectory;
+    t.joint_names.resize(6);
+    t.joint_names[0] = "shoulder_pan_joint";
+    t.joint_names[1] = "shoulder_lift_joint";
+    t.joint_names[2] = "elbow_joint";
+    t.joint_names[3] = "wrist_1_joint";
+    t.joint_names[4] = "wrist_2_joint";
+    t.joint_names[5] = "wrist_3_joint";
+
+    // Go to pose "home"    
+    t.points.resize(2); 
+    t.points[0].positions.resize(6);
+    t.points[0].velocities.resize(6);
+    t.points[1].positions.resize(6);
+    t.points[1].velocities.resize(6);
+    
+    ros::spinOnce();
+    for (int i = 0; i < 6; ++i) {
+      t.points[0].positions[i] = joint_[i];
+      t.points[0].velocities[i] = 
+      t.points[1].positions[i] =
+      t.points[1].velocities[i] = 0;
+    }
+    t.points[1].positions[1] = t.points[1].positions[3] = -M_PI/2;
+    t.points[0].time_from_start = ros::Duration(0);
+    t.points[1].time_from_start = ros::Duration(planning_time_);
+    StartTrajectory(goal_);
+  }
   void StartTrajectory(control_msgs::FollowJointTrajectoryGoal goal) {
     goal.trajectory.header.stamp = ros::Time::now();
     traj_client_->sendGoal(goal);
@@ -213,7 +246,7 @@ class RobotArm {
       t.points[1].velocities[i] = 0;
     }
     t.points[0].time_from_start = ros::Duration(0);
-    t.points[1].time_from_start = ros::Duration(planning_time_);
+    t.points[1].time_from_start = ros::Duration(10.0);
     return goal_;
   }
   actionlib::SimpleClientGoalState getState() {

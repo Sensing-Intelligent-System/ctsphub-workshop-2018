@@ -1,4 +1,5 @@
 #include <ros/ros.h>
+#include <std_srvs/Empty.h>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit_msgs/DisplayRobotState.h>
@@ -43,6 +44,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "pick_and_place");
   ros::NodeHandle nh;
   ros::ServiceClient ur3_client = nh.serviceClient<tutorial_0905::SetTargetPose>("/ur3_control/goto_pose");
+  ros::ServiceClient ur3_home_srv = nh.serviceClient<std_srvs::Empty>("/ur3_control/goto_home");
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
@@ -52,6 +54,7 @@ int main(int argc, char** argv)
   group.setPlannerId("RRTConnectkConfigDefault");
   group.setPoseReferenceFrame("base_link");
   tutorial_0905::SetTargetPose srv;
+  std_srvs::Empty home_srv;
   moveit::planning_interface::PlanningSceneInterface current_scene;
 
   // Go to pose which surveys where the object is to be picked.
@@ -76,7 +79,7 @@ int main(int argc, char** argv)
   else return 0;
   
   // Pick object in following waypoints.
-  double depth[2] = {-0.02, 0.05}, force = argc == 2 ? atof(argv[1]) : 50;
+  double depth[2] = {-0.05, 0.05}, force = argc == 2 ? atof(argv[1]) : 50;
   geometry_msgs::Pose waypoint[2];
   
   while (1) {
@@ -174,7 +177,7 @@ int main(int argc, char** argv)
   else return 0;
 
   // Place object in following waypoints.
-  depth[0] = -0.02; depth[1] = -0.03;
+  depth[0] = -0.1; depth[1] = -0.03;
   while (1) {
     pose_from_apriltag("where_to_place", waypoint, depth);
     group.setPoseTarget(waypoint[0]);
@@ -211,6 +214,7 @@ int main(int argc, char** argv)
   srv.request.planning_time = 2.0;
   ur3_client.call(srv);
   ROS_INFO_STREAM(srv.response.plan_result);
+  ur3_home_srv.call(home_srv);
 
 END:
   std::vector<std::string> obj;
